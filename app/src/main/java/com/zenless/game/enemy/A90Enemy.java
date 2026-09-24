@@ -17,7 +17,7 @@ import java.util.Random;
  */
 public class A90Enemy extends Enemy {
     private static final long APPEAR_MS = 1000;
-    private static final long WINDOW_MS = 2000;
+    private static final long WINDOW_MS = 2800;
 
     // hand position inside a-90stop-sign.webp, as fractions of the texture
     private static final float HAND_CX = 0.54f, HAND_CY = 0.50f, HAND_RX = 0.22f, HAND_RY = 0.31f;

@@ -20,7 +20,7 @@ needs an android sdk with platform 35 (`local.properties` -> `sdk.dir=...`).
 
 | entity | what to do | fail |
 |---|---|---|
-| A-90 | flashes, becomes a stop sign. don't touch anything, or tap the sign's hand | distorted jumpscare, -1/8 holos |
+| A-90 | shows for 1s (touches ignored), then a stop sign for 2.8s. don't touch anything, or tap the sign's hand | distorted jumpscare, -1/8 holos |
 | A-90B | ~15s of HALT (hold) / PROCEED (let go + tap) | distorted jumpscare, -1/6 holos |
 | Rush | rumble + flickering lights, be holding when it arrives until it's gone | lunge jumpscare, -1/14 holos |
 | Figure | 50s, hold while it approaches, let go while it retreats | lunge jumpscare, -1/5 holos |
