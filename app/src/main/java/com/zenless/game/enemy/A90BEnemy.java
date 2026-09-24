@@ -18,9 +18,9 @@ import java.util.Random;
  */
 public class A90BEnemy extends Enemy {
     private static final long TOTAL_MS = 15_000;
-    private static final long INTRO_MS = 600;
-    private static final long GRACE_MS = 650;
-    private static final long PROCEED_MAX_PRESS_MS = 450;
+    private static final long INTRO_MS = 800;
+    private static final long GRACE_MS = 900;
+    private static final long PROCEED_MAX_PRESS_MS = 600;
 
     private ImageView sign;
     private TextView hint;
@@ -56,7 +56,7 @@ public class A90BEnemy extends Enemy {
         lp.topMargin = dp(70);
         sign = add(new ImageView(ctx()), lp);
         sign.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        sign.setImageBitmap(Textures.get(ctx(), Textures.A90B_NORMAL));
+        sign.setImageBitmap(Textures.get(ctx(), Textures.A90_NORMAL));
         hint = addHint("", Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 48);
         host.sfx().play(Sfx.A90_STING);
     }
@@ -64,7 +64,7 @@ public class A90BEnemy extends Enemy {
     private void startPhase(boolean newHalt) {
         halt = newHalt;
         phaseStart = elapsed;
-        phaseLen = 1400 + rng.nextInt(1400);
+        phaseLen = 2000 + rng.nextInt(1800);
         proceedTaps = 0;
         sign.setImageBitmap(Textures.get(ctx(), halt ? Textures.A90B_HALT_SIGN : Textures.A90B_PROCEED_SIGN));
         sign.setScaleX(1.25f);

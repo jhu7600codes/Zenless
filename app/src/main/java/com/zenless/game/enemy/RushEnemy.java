@@ -18,8 +18,8 @@ import java.util.Random;
  * Failing costs 1/14 of current holos.
  */
 public class RushEnemy extends Enemy {
-    public static final long CUE_MS = 4000;
-    private static final long PASS_MS = 1100;
+    public static final long CUE_MS = 5000;
+    private static final long PASS_MS = 1400;
 
     private View dark;
     private TextView hint;

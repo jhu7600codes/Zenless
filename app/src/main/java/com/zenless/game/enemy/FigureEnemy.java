@@ -20,10 +20,10 @@ import java.util.Random;
  */
 public class FigureEnemy extends Enemy {
     private static final long TOTAL_MS = 50_000;
-    private static final long INTRO_MS = 2000;
+    private static final long INTRO_MS = 2500;
     private static final long LEAVE_MS = 1500;
-    private static final long GRACE_MS = 800;
-    private static final long PROCEED_MAX_PRESS_MS = 450;
+    private static final long GRACE_MS = 1100;
+    private static final long PROCEED_MAX_PRESS_MS = 600;
     private static final long STEP_MS = 420;
 
     private static final int IDLE = 0, APPROACH = 1, RETREAT = 2, LEAVING = 3;
@@ -82,7 +82,7 @@ public class FigureEnemy extends Enemy {
     private void startPhase(int p) {
         phase = p;
         phaseStart = elapsed;
-        phaseLen = 3000 + rng.nextInt(3000);
+        phaseLen = 4000 + rng.nextInt(3500);
         if (p == APPROACH) {
             setAnim(Textures.FIGURE_RUNNING, 63);
             hint.setText("it's coming — HALT, hold still");

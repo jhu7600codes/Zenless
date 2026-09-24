@@ -43,7 +43,7 @@ public class JumpscareController {
                 glitch(Textures.A90_DISTORT_BG, Textures.A90_DISTORT, Sfx.SCREAM_A90, done);
                 break;
             case A90B:
-                glitch(Textures.A90B_DISTORT_BG, Textures.A90B_DISTORT, Sfx.SCREAM_A90, done);
+                glitch(Textures.A90_DISTORT_BG, Textures.A90_DISTORT, Sfx.SCREAM_A90, done);
                 break;
             case RUSH:
                 lunge(Textures.get(ctx, Textures.RUSH_JUMPSCARE), 0xFF000000, ImageView.ScaleType.CENTER_CROP, Sfx.SCREAM_RUSH, done);
