@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- negative insets hide the stroke on three sides, leaving a bottom bar (works below api 23) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <color android:color="#5533B5E5" />
+    </item>
+    <item android:state_selected="true">
+        <layer-list>
+            <item android:left="-4dp" android:right="-4dp" android:top="-4dp">
+                <shape>
+                    <solid android:color="@color/holo_panel" />
+                    <stroke android:width="4dp" android:color="@color/holo_blue" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item android:left="-1dp" android:right="-1dp" android:top="-1dp">
+                <shape>
+                    <solid android:color="@color/holo_panel" />
+                    <stroke android:width="1dp" android:color="@color/holo_blue_dark" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

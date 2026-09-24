@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/holo_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- top bar -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/holo_panel"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/holos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-light"
+                android:text="0"
+                android:textColor="@color/holo_blue"
+                android:textSize="34sp" />
+
+            <TextView
+                android:id="@+id/holosLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/holos"
+                android:layout_marginLeft="8dp"
+                android:layout_toRightOf="@id/holos"
+                android:text="holos"
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/rates"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/holos"
+                android:text="0/sec  ·  1/tap"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/door"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans-serif-condensed"
+                android:text="DOOR 0000"
+                android:textColor="@color/holo_orange"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/stItems"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_below="@id/door"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/holo_purple"
+                android:textSize="13sp" />
+        </RelativeLayout>
+
+        <ProgressBar
+            android:id="@+id/doorProgress"
+            style="@android:style/Widget.Holo.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:max="1000" />
+
+        <com.zenless.game.HoloCircleView
+            android:id="@+id/circle"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tabShop"
+                style="@style/HoloTab"
+                android:text="@string/tab_shop" />
+
+            <TextView
+                android:id="@+id/tabUpgrades"
+                style="@style/HoloTab"
+                android:text="@string/tab_upgrades" />
+
+            <TextView
+                android:id="@+id/tabRebirth"
+                style="@style/HoloTab"
+                android:text="@string/tab_rebirth" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.95"
+            android:background="@color/holo_bg">
+
+            <ListView
+                android:id="@+id/listShop"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@color/holo_divider"
+                android:dividerHeight="1dp" />
+
+            <ListView
+                android:id="@+id/listUpgrades"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@color/holo_divider"
+                android:dividerHeight="1dp"
+                android:visibility="gone" />
+
+            <ListView
+                android:id="@+id/listRebirth"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@color/holo_divider"
+                android:dividerHeight="1dp"
+                android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- enemies and jumpscares draw here, above everything -->
+    <FrameLayout
+        android:id="@+id/enemyLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>
