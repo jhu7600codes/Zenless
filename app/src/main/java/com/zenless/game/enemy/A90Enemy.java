@@ -16,7 +16,7 @@ import java.util.Random;
  * must not touch the screen, except to tap the sign's hand (which dismisses it early).
  */
 public class A90Enemy extends Enemy {
-    private static final long APPEAR_MS = 550;
+    private static final long APPEAR_MS = 1000;
     private static final long WINDOW_MS = 2000;
 
     // hand position inside a-90stop-sign.webp, as fractions of the texture
