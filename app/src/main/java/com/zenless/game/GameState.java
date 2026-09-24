@@ -13,6 +13,8 @@ public final class GameState {
     public double runEarned;
     public long runTaps;
     public int door;
+    /** Difficulty ordinal, -1 until the player picks one for this run. */
+    public int difficulty = -1;
     public int[] buildings = new int[Building.ALL.length];
     public int[] upgrades = new int[Upgrade.ALL.length];
 
@@ -35,6 +37,7 @@ public final class GameState {
         runEarned = getDouble(p, "runEarned");
         runTaps = p.getLong("runTaps", 0);
         door = p.getInt("door", 0);
+        difficulty = p.getInt("difficulty", -1);
         for (int i = 0; i < buildings.length; i++) buildings[i] = p.getInt("b" + i, 0);
         for (int i = 0; i < upgrades.length; i++) upgrades[i] = p.getInt("u" + i, 0);
         stItems = p.getLong("stItems", 0);
@@ -57,6 +60,7 @@ public final class GameState {
         putDouble(e, "runEarned", runEarned);
         e.putLong("runTaps", runTaps);
         e.putInt("door", door);
+        e.putInt("difficulty", difficulty);
         for (int i = 0; i < buildings.length; i++) e.putInt("b" + i, buildings[i]);
         for (int i = 0; i < upgrades.length; i++) e.putInt("u" + i, upgrades[i]);
         e.putLong("stItems", stItems);
@@ -78,10 +82,15 @@ public final class GameState {
         runEarned = 0;
         runTaps = 0;
         door = 0;
+        difficulty = -1;
         for (int i = 0; i < buildings.length; i++) buildings[i] = 0;
         for (int i = 0; i < upgrades.length; i++) upgrades[i] = 0;
         holos += 1000.0 * meta[MetaUpgrade.HEAD_START];
         buildings[1] += 5 * meta[MetaUpgrade.STARTER_DRONES];
+    }
+
+    public Difficulty diff() {
+        return Difficulty.of(difficulty);
     }
 
     public void earn(double amount) {

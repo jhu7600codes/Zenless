@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 
+import com.zenless.game.Difficulty;
 import com.zenless.game.Economy;
 import com.zenless.game.GameState;
 import com.zenless.game.Sfx;
@@ -52,25 +53,18 @@ public class EventManager implements EnemyHost {
         this.state = state;
         this.eco = eco;
         this.listener = listener;
-        this.jumpscares = new JumpscareController(ctx, layer, sfx);
+        this.jumpscares = new JumpscareController(ctx, layer, sfx, state);
     }
 
     /** The spawn roll from the design doc. Returns null for "no spawn". */
     public EnemyType rollDoor() {
-        return pick(rng.nextInt(100), rng.nextInt(101));
+        Difficulty d = state.diff();
+        if (rng.nextDouble() >= d.spawnChance) return null;
+        return d.pickEntity(rng.nextInt(101));
     }
 
-    /**
-     * @param spawnRoll  0..99, below 51 means the door is empty (51/49)
-     * @param entityRoll 0..100, picks who shows up
-     */
-    public static EnemyType pick(int spawnRoll, int entityRoll) {
-        if (spawnRoll < 51) return null;
-        int r = entityRoll;
-        if (r == 25) return EnemyType.RUSH;
-        if (r > 25 && r < 50) return EnemyType.A90B;
-        if (r < 25) return EnemyType.FIGURE;
-        return EnemyType.A90; // 50..100
+    private long doorMs() {
+        return (long) (DOOR_MS / state.diff().doorSpeed);
     }
 
     public void tick(long dt) {
@@ -78,10 +72,11 @@ public class EventManager implements EnemyHost {
             current.dispatchTick(dt);
             return; // doors stay shut while something is here
         }
+        if (state.difficulty < 0) return; // run hasn't started, still picking a difficulty
         if (cooldown > 0) cooldown -= dt;
         doorTimer -= dt;
         if (doorTimer <= 0) {
-            doorTimer = DOOR_MS;
+            doorTimer = doorMs();
             state.door++;
             EnemyType t = cooldown > 0 ? null : rollDoor();
             listener.onDoor(state.door, t);
@@ -102,6 +97,20 @@ public class EventManager implements EnemyHost {
         current.spawn(this);
     }
 
+    private long cooldownMs() {
+        return (long) (COOLDOWN_MS / state.diff().doorSpeed);
+    }
+
+    /** New run: fresh door timer, no leftover cooldown. */
+    public void resetDoors() {
+        doorTimer = doorMs();
+        cooldown = 0;
+    }
+
+    public boolean a90bOriginalSprites() {
+        return state.diff().a90bOriginalSprites();
+    }
+
     public boolean isActive() {
         return current != null;
     }
@@ -111,7 +120,7 @@ public class EventManager implements EnemyHost {
     }
 
     public float doorProgress() {
-        return 1f - doorTimer / (float) DOOR_MS;
+        return 1f - doorTimer / (float) doorMs();
     }
 
     public void onTouch(MotionEvent e) {
@@ -124,9 +133,9 @@ public class EventManager implements EnemyHost {
         if (current != null) {
             current.abort();
             current = null;
-            cooldown = COOLDOWN_MS;
+            cooldown = cooldownMs();
         }
-        doorTimer = DOOR_MS;
+        doorTimer = doorMs();
     }
 
     // ---- EnemyHost ----
@@ -186,8 +195,8 @@ public class EventManager implements EnemyHost {
     public void finished(Enemy e, boolean survived) {
         if (e != current) return;
         current = null;
-        cooldown = COOLDOWN_MS;
-        doorTimer = DOOR_MS;
+        cooldown = cooldownMs();
+        doorTimer = doorMs();
         if (survived) state.entitiesSurvived++;
         else state.entitiesFailed++;
         double d = lastDelta;

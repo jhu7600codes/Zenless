@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.zenless.game.enemy.EnemyType;
-import com.zenless.game.enemy.EventManager;
 
 import org.junit.Test;
 
@@ -22,13 +21,38 @@ public class GameLogicTest {
     }
 
     @Test
-    public void doorRollMatchesSpec() {
-        // 51% of doors are empty
-        for (int s = 0; s < 51; s++) for (int e = 0; e <= 100; e++) assertNull(EventManager.pick(s, e));
-        assertEquals(EnemyType.RUSH, EventManager.pick(60, 25));
-        for (int e = 26; e < 50; e++) assertEquals(EnemyType.A90B, EventManager.pick(60, e));
-        for (int e = 0; e < 25; e++) assertEquals(EnemyType.FIGURE, EventManager.pick(99, e));
-        for (int e = 50; e <= 100; e++) assertEquals(EnemyType.A90, EventManager.pick(51, e));
+    public void entityRollMatchesSpec() {
+        Difficulty h = Difficulty.HARD;
+        assertEquals(0.49, h.spawnChance, 0);
+        assertEquals(EnemyType.RUSH, h.pickEntity(25));
+        for (int e = 26; e < 50; e++) assertEquals(EnemyType.A90B, h.pickEntity(e));
+        for (int e = 0; e < 25; e++) assertEquals(EnemyType.FIGURE, h.pickEntity(e));
+        for (int e = 50; e <= 100; e++) assertEquals(EnemyType.A90, h.pickEntity(e));
+        assertEquals(h.pickEntity(60), Difficulty.SUPER_HARD.pickEntity(60));
+    }
+
+    @Test
+    public void difficultiesDiffer() {
+        for (int e = 0; e <= 100; e++) {
+            assertNull(Difficulty.EASY.pickEntity(e));
+            assertEquals(EnemyType.FIGURE, Difficulty.NORMAL.pickEntity(e));
+        }
+        assertEquals(0, Difficulty.EASY.spawnChance, 0);
+        assertEquals(0.98, Difficulty.EXTREME.spawnChance, 1e-9);
+        assertEquals(EnemyType.A90B, Difficulty.EXTREME.pickEntity(65));
+        assertEquals(1.0, Difficulty.SUPER_HARD.spawnChance, 0);
+        assertEquals(3.0, Difficulty.SUPER_HARD.doorSpeed, 0);
+
+        GameState s = new GameState();
+        Economy eco = new Economy(s);
+        s.difficulty = Difficulty.EASY.ordinal();
+        assertEquals(12, eco.buildingCost(0), 0);
+        s.difficulty = Difficulty.SUPER_HARD.ordinal();
+        assertEquals(23, eco.buildingCost(0), 0); // ceil(15 * 1.5)
+        s.upgrades[Upgrade.CLICK_POWER] = 2;
+        assertEquals(2.25, eco.clickPower(), 1e-9); // 1.5^2 instead of 2^2
+        s.buildings[1] = 10;
+        assertEquals(5, eco.hps(), 1e-9);
     }
 
     @Test
@@ -50,5 +74,6 @@ public class GameLogicTest {
         assertEquals(0, s.holos, 0);
         assertEquals(true, s.adminUnlocked);
         assertEquals(false, s.adminEnabled);
+        assertEquals(-1, s.difficulty);
     }
 }

@@ -10,6 +10,7 @@ import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.zenless.game.GameState;
 import com.zenless.game.Sfx;
 import com.zenless.game.Textures;
 
@@ -27,11 +28,13 @@ public class JumpscareController {
     private final Context ctx;
     private final FrameLayout layer;
     private final Sfx sfx;
+    private final GameState state;
     private final Random rng = new Random();
     private ValueAnimator running;
     private View[] runningViews;
 
-    public JumpscareController(Context ctx, FrameLayout layer, Sfx sfx) {
+    public JumpscareController(Context ctx, FrameLayout layer, Sfx sfx, GameState state) {
+        this.state = state;
         this.ctx = ctx;
         this.layer = layer;
         this.sfx = sfx;
@@ -43,7 +46,11 @@ public class JumpscareController {
                 glitch(Textures.A90_DISTORT_BG, Textures.A90_DISTORT, Sfx.SCREAM_A90, done);
                 break;
             case A90B:
-                glitch(Textures.A90_DISTORT_BG, Textures.A90_DISTORT, Sfx.SCREAM_A90, done);
+                if (state.diff().a90bOriginalSprites()) {
+                    glitch(Textures.A90B_DISTORT_BG, Textures.A90B_DISTORT, Sfx.SCREAM_A90, done);
+                } else {
+                    glitch(Textures.A90_DISTORT_BG, Textures.A90_DISTORT, Sfx.SCREAM_A90, done);
+                }
                 break;
             case RUSH:
                 lunge(Textures.get(ctx, Textures.RUSH_JUMPSCARE), 0xFF000000, ImageView.ScaleType.CENTER_CROP, Sfx.SCREAM_RUSH, done);

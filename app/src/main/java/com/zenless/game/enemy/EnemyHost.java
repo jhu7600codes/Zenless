@@ -31,6 +31,9 @@ public interface EnemyHost {
     /** Gives {@code seconds} worth of income, returns amount gained. */
     double reward(double seconds);
 
+    /** Extreme mode: A-90B uses its own textures instead of A-90's. */
+    boolean a90bOriginalSprites();
+
     /** Enemy is gone (after its jumpscare if it failed). */
     void finished(Enemy e, boolean survived);
 }

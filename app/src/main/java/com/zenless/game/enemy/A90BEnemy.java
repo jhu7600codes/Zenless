@@ -56,7 +56,7 @@ public class A90BEnemy extends Enemy {
         lp.topMargin = dp(70);
         sign = add(new ImageView(ctx()), lp);
         sign.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        sign.setImageBitmap(Textures.get(ctx(), Textures.A90_NORMAL));
+        sign.setImageBitmap(Textures.get(ctx(), host.a90bOriginalSprites() ? Textures.A90B_NORMAL : Textures.A90_NORMAL));
         hint = addHint("", Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 48);
         host.sfx().play(Sfx.A90_STING);
     }

@@ -18,8 +18,13 @@ public final class Economy {
         return (1 + 0.10 * s.stLifetime) * (1 + 0.25 * s.meta[MetaUpgrade.ETERNAL_GLOW]);
     }
 
+    /** Per tier upgrade effects get scaled by this (super hard halves them). */
+    private double power() {
+        return s.diff().power;
+    }
+
     public double costMult() {
-        return Math.pow(0.96, s.upgrades[Upgrade.COST_REDUCTION]);
+        return Math.pow(1 - 0.04 * power(), s.upgrades[Upgrade.COST_REDUCTION]) * s.diff().costMult;
     }
 
     public double buildingCost(int i) {
@@ -28,27 +33,27 @@ public final class Economy {
     }
 
     public double buildingHps(int i) {
-        return Building.ALL[i].baseHps * passiveMult();
+        return Building.ALL[i].baseHps * power() * passiveMult();
     }
 
     public double passiveMult() {
-        return Math.pow(1.5, s.upgrades[Upgrade.PASSIVE_BOOST]) * globalMult();
+        return Math.pow(1 + 0.5 * power(), s.upgrades[Upgrade.PASSIVE_BOOST]) * globalMult();
     }
 
     public double hps() {
         double base = 0;
         for (int i = 0; i < Building.ALL.length; i++) base += Building.ALL[i].baseHps * s.buildings[i];
-        return base * passiveMult();
+        return base * power() * passiveMult();
     }
 
     public double clickPower() {
-        double p = Math.pow(2, s.upgrades[Upgrade.CLICK_POWER]) * globalMult();
-        p += hps() * 0.01 * s.upgrades[Upgrade.SYNERGY];
+        double p = Math.pow(1 + power(), s.upgrades[Upgrade.CLICK_POWER]) * globalMult();
+        p += hps() * 0.01 * power() * s.upgrades[Upgrade.SYNERGY];
         return p;
     }
 
     public double critChance() {
-        return 0.04 * s.upgrades[Upgrade.CRIT_TAPS];
+        return 0.04 * power() * s.upgrades[Upgrade.CRIT_TAPS];
     }
 
     public boolean rollCrit() {
@@ -57,7 +62,7 @@ public final class Economy {
 
     public double upgradeCost(int i) {
         Upgrade u = Upgrade.ALL[i];
-        return Math.ceil(u.baseCost * Math.pow(u.costMult, s.upgrades[i]));
+        return Math.ceil(u.baseCost * Math.pow(u.costMult, s.upgrades[i]) * s.diff().costMult);
     }
 
     public boolean upgradeMaxed(int i) {
@@ -66,7 +71,7 @@ public final class Economy {
 
     /** Fraction of the penalty that actually applies after Night Light. */
     public double penaltyScale() {
-        return Math.max(0.2, 1 - 0.06 * s.upgrades[Upgrade.GUARD]);
+        return Math.max(0.2, 1 - 0.06 * power() * s.upgrades[Upgrade.GUARD]);
     }
 
     /** Multiplier on entity reaction windows from Composure. */

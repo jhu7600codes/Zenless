@@ -7,6 +7,18 @@ holo themed clicker game for android, with doors-style entities that show up whi
 - every 30s a door opens: 51% nothing, 49% an entity (rush / a-90b / figure / a-90 by a 0-100 roll)
 - first rebirth unlocks a per-save admin panel toggle (off by default) to spawn entities manually
 
+## difficulty
+
+asked at the start of every run (first launch and after each rebirth):
+
+| mode | entities | prices |
+|---|---|---|
+| easy | none, pure farming | 20% cheaper |
+| normal | only figure | 20% cheaper |
+| hard | all, normal 49% door spawns | normal |
+| extreme | 98% door spawns, more a-90b in his original sprites | normal |
+| SUPER HARD MODE | every door (+547%), doors 3x faster | +50% prices, upgrades and buildings 50% weaker |
+
 ## build
 
 ```

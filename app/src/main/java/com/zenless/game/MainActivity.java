@@ -56,6 +56,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
     private long lastFrame;
     private int secondsSinceSave;
     private boolean running;
+    private AlertDialog difficultyDialog;
 
     // ---- lifecycle ----
 
@@ -100,6 +101,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
         lastFrame = SystemClock.uptimeMillis();
         handler.post(frameLoop);
         handler.postDelayed(secondLoop, 1000);
+        if (state.difficulty < 0) askDifficulty();
     }
 
     @Override
@@ -116,6 +118,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (difficultyDialog != null) difficultyDialog.dismiss();
         sfx.release();
     }
 
@@ -331,7 +334,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
                 int tier = state.upgrades[i];
                 boolean maxed = eco.upgradeMaxed(i);
                 r.title.setText(u.name);
-                r.subtitle.setText(u.effectPerTier + " per tier");
+                r.subtitle.setText(u.effectPerTier + " per tier" + (state.diff().power < 1 ? " (halved)" : ""));
                 r.cost.setText(maxed ? "MAXED" : Fmt.holos(eco.upgradeCost(i)) + " holos");
                 r.count.setText(String.format(Locale.US, "%d/%d", tier, u.maxTier));
                 return !maxed && state.holos >= eco.upgradeCost(i);
@@ -436,10 +439,36 @@ public class MainActivity extends Activity implements EventManager.Listener {
                             state.save(MainActivity.this);
                             toast("reborn. +" + got + " superterrestrial items");
                             refreshAll();
+                            askDifficulty();
                         }
                     }
                 })
                 .show();
+    }
+
+    // ---- difficulty ----
+
+    /** Asked at the start of every run. Can't be dismissed, the run waits until you pick. */
+    private void askDifficulty() {
+        if (difficultyDialog != null && difficultyDialog.isShowing()) return;
+        final Difficulty[] all = Difficulty.values();
+        CharSequence[] items = new CharSequence[all.length];
+        for (int i = 0; i < all.length; i++) items[i] = all[i].label + "\n" + all[i].desc;
+        difficultyDialog = new AlertDialog.Builder(this, AlertDialog.THEME_HOLO_DARK)
+                .setTitle("What difficulty?")
+                .setCancelable(false)
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        state.difficulty = all[which].ordinal();
+                        events.resetDoors();
+                        state.save(MainActivity.this);
+                        toast(all[which].label + " run started");
+                        refreshAll();
+                    }
+                })
+                .create();
+        difficultyDialog.show();
     }
 
     // ---- EventManager.Listener ----
@@ -472,7 +501,9 @@ public class MainActivity extends Activity implements EventManager.Listener {
     private void refreshTop() {
         holosText.setText(Fmt.holos(state.holos));
         ratesText.setText(Fmt.holos(eco.hps()) + "/sec  ·  " + Fmt.holos(eco.clickPower()) + "/tap");
-        doorText.setText(String.format(Locale.US, "DOOR %04d", state.door));
+        doorText.setText(state.difficulty < 0
+                ? String.format(Locale.US, "DOOR %04d", state.door)
+                : String.format(Locale.US, "%s \u00b7 DOOR %04d", state.diff().label.toUpperCase(Locale.US), state.door));
         stText.setText(state.stLifetime > 0 || state.stItems > 0
                 ? state.stItems + " superterrestrial" : "");
     }
