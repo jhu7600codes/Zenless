@@ -4,13 +4,13 @@ plugins {
 
 android {
     namespace 'com.zenless.game'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId 'com.zenless.game'
         // holo era devices are supported, newer ones still get Theme.Holo from the framework
         minSdk 19
-        targetSdk 34
+        targetSdk 35
         versionCode 1
         versionName '1.0'
     }

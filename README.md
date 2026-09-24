@@ -2,7 +2,7 @@
 
 holo themed clicker game for android, with doors-style entities that show up while you tap.
 
-- pure java, no androidx, `Theme.Holo.NoActionBar` straight from the framework (minSdk 19, targetSdk 34)
+- pure java, no androidx, `Theme.Holo.NoActionBar` straight from the framework (minSdk 19, targetSdk 35), immersive fullscreen
 - tap the big blue circle for holos, buy buildings in the shop, tiered upgrades, rebirth for superterrestrial items
 - every 30s a door opens: 51% nothing, 49% an entity (rush / a-90b / figure / a-90 by a 0-100 roll)
 - first rebirth unlocks a per-save admin panel toggle (off by default) to spawn entities manually
@@ -14,7 +14,7 @@ holo themed clicker game for android, with doors-style entities that show up whi
 ./gradlew testDebugUnitTest
 ```
 
-needs an android sdk with platform 34 (`local.properties` -> `sdk.dir=...`).
+needs an android sdk with platform 35 (`local.properties` -> `sdk.dir=...`).
 
 ## entities
 
