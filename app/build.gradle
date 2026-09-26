@@ -30,6 +30,11 @@ android {
         unitTests.returnDefaultValues = true
     }
 
+    androidResources {
+        // sounds are opened with openFd, which needs them stored uncompressed
+        noCompress 'mp3', 'ogg'
+    }
+
     lint {
         abortOnError false
     }

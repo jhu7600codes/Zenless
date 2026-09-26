@@ -58,7 +58,7 @@ public class A90BEnemy extends Enemy {
         sign.setScaleType(ImageView.ScaleType.FIT_CENTER);
         sign.setImageBitmap(Textures.get(ctx(), host.a90bOriginalSprites() ? Textures.A90B_NORMAL : Textures.A90_NORMAL));
         hint = addHint("", Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 48);
-        host.sfx().play(Sfx.A90_STING);
+        host.sfx().play(Sfx.A90B_SPAWN);
     }
 
     private void startPhase(boolean newHalt) {
@@ -71,6 +71,7 @@ public class A90BEnemy extends Enemy {
         sign.setScaleY(1.25f);
         sign.animate().scaleX(1f).scaleY(1f).setDuration(180).start();
         hint.setText(halt ? "HALT — hold" : "PROCEED — let go and tap");
+        host.sfx().stop(halt ? Sfx.BEEP_PROCEED : Sfx.BEEP_HALT);
         host.sfx().play(halt ? Sfx.BEEP_HALT : Sfx.BEEP_PROCEED);
     }
 

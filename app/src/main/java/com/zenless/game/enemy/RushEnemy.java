@@ -110,6 +110,7 @@ public class RushEnemy extends Enemy {
 
     @Override
     public void onSuccess() {
+        host.sfx().stop(Sfx.RUSH_CUE);
         host.sfx().play(Sfx.SAFE);
         super.onSuccess();
     }

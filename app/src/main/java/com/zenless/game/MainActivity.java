@@ -66,7 +66,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
         setContentView(R.layout.activity_main);
         setupFullscreen();
         state.load(this);
-        sfx = new Sfx();
+        sfx = new Sfx(this);
         Textures.preload(this);
 
         holosText = (TextView) findViewById(R.id.holos);
@@ -111,6 +111,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
         handler.removeCallbacks(frameLoop);
         handler.removeCallbacks(secondLoop);
         events.pause();
+        sfx.stopAll();
         holding = false;
         state.save(this);
     }

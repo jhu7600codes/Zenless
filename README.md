@@ -45,4 +45,10 @@ new entities: subclass `enemy/Enemy` (spawn / tick / resolvePlayerAction / onFai
 (android drawable names can't contain `-`, so they're loaded from assets via `Textures.java`).
 the animated figure textures are split into frame folders (`figure/figure-idle/000.webp` ...)
 so they animate on every api level. the launcher icon is `icon.jpg` scaled into `mipmap-*`.
-all sounds are synthesized at startup in `Sfx.java` since the zip has no audio.
+## sounds
+
+`app/src/main/assets/sounds/<enemy>/`, taken from the [doors wiki](https://doors-game.fandom.com)
+(a-90, rush, figure) and the [rooms revisited wiki](https://rooms-revisited.fandom.com) (a-90b).
+`PlaySound (Rush)` is trimmed to the warning length with a fade in, halt/proceed have their silence cut.
+the survive chime is synthesized in `Sfx.java`. all game sounds and textures belong to their original creators,
+this is a non-commercial fan project.

@@ -24,7 +24,7 @@ public class FigureEnemy extends Enemy {
     private static final long LEAVE_MS = 1500;
     private static final long GRACE_MS = 1100;
     private static final long PROCEED_MAX_PRESS_MS = 600;
-    private static final long STEP_MS = 420;
+    private static final long STEP_MS = 900;
 
     private static final int IDLE = 0, APPROACH = 1, RETREAT = 2, LEAVING = 3;
 
@@ -66,6 +66,7 @@ public class FigureEnemy extends Enemy {
         timer = addHint("", Gravity.TOP | Gravity.CENTER_HORIZONTAL, 56);
         hint = addHint("it's listening...", Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 48);
         setAnim(Textures.FIGURE_IDLE, 250);
+        host.sfx().play(Sfx.FIGURE_SPAWN);
     }
 
     private void setAnim(String folder, int frameMs) {
@@ -150,6 +151,13 @@ public class FigureEnemy extends Enemy {
             host.tapCircle();
         }
         return true;
+    }
+
+    @Override
+    public void onFail() {
+        host.sfx().stop(Sfx.FIGURE_STEP);
+        host.sfx().stop(Sfx.FIGURE_SPAWN);
+        super.onFail();
     }
 
     @Override
