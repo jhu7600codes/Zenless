@@ -3,10 +3,21 @@ package com.zenless.game;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/** Everything that gets saved. One instance lives for the whole app. */
+/** Everything that gets saved in one save slot. */
 public final class GameState {
-    private static final String PREFS = "zenless_save";
-    private static final int SAVE_VERSION = 1;
+    private static final int SAVE_VERSION = 2;
+
+    public static final int RIFT_EMPTY = -1, RIFT_BUILDING = 0, RIFT_UPGRADE = 1;
+
+    private final String prefs;
+
+    public GameState() {
+        this(SaveSlots.prefsName(1));
+    }
+
+    public GameState(String prefsName) {
+        this.prefs = prefsName;
+    }
 
     // current run
     public double holos;
@@ -25,6 +36,14 @@ public final class GameState {
     public int[] meta = new int[MetaUpgrade.ALL.length];
     public boolean adminUnlocked;
     public boolean adminEnabled;
+    /** set the first time the admin panel is switched on, never cleared: no achievements, no rift */
+    public boolean adminEverUsed;
+    /** one building stack or upgrade tier carried into the next run */
+    public int riftKind = RIFT_EMPTY;
+    public int riftIndex;
+    public boolean riftEverUsed;
+    public long lifetimeTaps;
+    public int survivedSuper;
     public double lifetimeEarned;
     public int entitiesSurvived;
     public int entitiesFailed;
@@ -32,7 +51,7 @@ public final class GameState {
     public long lastSaveTime;
 
     public void load(Context ctx) {
-        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        SharedPreferences p = ctx.getSharedPreferences(prefs, Context.MODE_PRIVATE);
         holos = getDouble(p, "holos");
         runEarned = getDouble(p, "runEarned");
         runTaps = p.getLong("runTaps", 0);
@@ -50,11 +69,23 @@ public final class GameState {
         entitiesSurvived = p.getInt("survived", 0);
         entitiesFailed = p.getInt("failed", 0);
         lastSaveTime = p.getLong("lastSave", 0);
+        // saves from before this flag existed count as used if the panel is on right now
+        adminEverUsed = p.getBoolean("adminEverUsed", adminEnabled);
+        riftKind = p.getInt("riftKind", RIFT_EMPTY);
+        riftIndex = p.getInt("riftIndex", 0);
+        riftEverUsed = p.getBoolean("riftEverUsed", false);
+        lifetimeTaps = p.getLong("lifetimeTaps", runTaps);
+        survivedSuper = p.getInt("survivedSuper", 0);
+    }
+
+    /** Admin panel was used at some point: achievements and the rift are off for good. */
+    public boolean progressionDisabled() {
+        return adminEverUsed;
     }
 
     public void save(Context ctx) {
         lastSaveTime = System.currentTimeMillis();
-        SharedPreferences.Editor e = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor e = ctx.getSharedPreferences(prefs, Context.MODE_PRIVATE).edit();
         e.putInt("version", SAVE_VERSION);
         putDouble(e, "holos", holos);
         putDouble(e, "runEarned", runEarned);
@@ -73,11 +104,27 @@ public final class GameState {
         e.putInt("survived", entitiesSurvived);
         e.putInt("failed", entitiesFailed);
         e.putLong("lastSave", lastSaveTime);
+        e.putBoolean("adminEverUsed", adminEverUsed);
+        e.putInt("riftKind", riftKind);
+        e.putInt("riftIndex", riftIndex);
+        e.putBoolean("riftEverUsed", riftEverUsed);
+        e.putLong("lifetimeTaps", lifetimeTaps);
+        e.putInt("survivedSuper", survivedSuper);
         e.apply();
     }
 
-    /** Wipes the current run, keeps permanent stuff and applies meta head starts. */
+    /** What's in the rift, e.g. "Tap Drone x25", or null. */
+    public String riftLabel() {
+        if (riftKind == RIFT_BUILDING) return Building.ALL[riftIndex].name + " x" + buildings[riftIndex];
+        if (riftKind == RIFT_UPGRADE) return Upgrade.ALL[riftIndex].name + " tier " + upgrades[riftIndex];
+        return null;
+    }
+
+    /** Wipes the current run, keeps permanent stuff, applies meta head starts and empties the rift into it. */
     public void resetRun() {
+        int riftAmount = riftKind == RIFT_BUILDING ? buildings[riftIndex]
+                : riftKind == RIFT_UPGRADE ? upgrades[riftIndex] : 0;
+        int kind = progressionDisabled() ? RIFT_EMPTY : riftKind;
         holos = 0;
         runEarned = 0;
         runTaps = 0;
@@ -87,10 +134,18 @@ public final class GameState {
         for (int i = 0; i < upgrades.length; i++) upgrades[i] = 0;
         holos += 1000.0 * meta[MetaUpgrade.HEAD_START];
         buildings[1] += 5 * meta[MetaUpgrade.STARTER_DRONES];
+        if (kind == RIFT_BUILDING) buildings[riftIndex] += riftAmount;
+        else if (kind == RIFT_UPGRADE) upgrades[riftIndex] = Math.max(upgrades[riftIndex], riftAmount);
+        riftKind = RIFT_EMPTY;
     }
 
     public Difficulty diff() {
         return Difficulty.of(difficulty);
+    }
+
+    public void tapped() {
+        runTaps++;
+        lifetimeTaps++;
     }
 
     public void earn(double amount) {

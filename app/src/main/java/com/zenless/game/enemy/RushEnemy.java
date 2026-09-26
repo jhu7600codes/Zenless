@@ -7,6 +7,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.zenless.game.Settings;
 import com.zenless.game.Sfx;
 import com.zenless.game.Textures;
 
@@ -59,8 +60,8 @@ public class RushEnemy extends Enemy {
         if (!passing) {
             float t = elapsed / (float) cueMs;
             // flicker gets more violent as it gets close
-            boolean off = rng.nextFloat() < 0.05f + 0.35f * t;
-            int alpha = off ? (int) (120 + 120 * t) : (int) (60 * t);
+            boolean off = !Settings.reduceFlashing && rng.nextFloat() < 0.05f + 0.35f * t;
+            int alpha = off ? (int) (120 + 120 * t) : (int) ((Settings.reduceFlashing ? 150 : 60) * t);
             dark.setBackgroundColor(alpha << 24);
             hint.setAlpha(Math.min(1f, t * 3));
             if (t > 0.5f) hint.setText("hold to hide");

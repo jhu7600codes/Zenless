@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <Switch
+        android:id="@+id/setSound"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Sound effects"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp" />
+
+    <Switch
+        android:id="@+id/setHaptics"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Tap vibration"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp" />
+
+    <Switch
+        android:id="@+id/setFlashing"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Reduce flashing"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="reduce flashing tones down the lights flickering and the red flashes"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+</LinearLayout>

@@ -8,6 +8,17 @@ holo themed clicker game for android, with doors-style entities that show up whi
 - doors/rooms style spawns: each entity has a scripted first meeting, then a small chance per door
 - first rebirth unlocks a per-save admin panel toggle (off by default) to spawn entities manually
 
+## title screen
+
+logo, PLAY / SETTINGS / TUTORIAL, and a row of achievement badges up top (tap one to read it, locked ones only show their flavor line).
+
+- **play**: three save slots (hold one to delete it). a save where the admin panel was ever enabled shows
+  "progression disabled": no achievements and no rift there, for good
+- **settings**: sound, tap vibration, reduce flashing
+- **tutorial**: a page per entity with a practice button (throwaway save), plus rebirth, the rift and money strats
+- **the rift** (rebirth tab): put one building stack or upgrade tier in, it carries into your next run
+- **achievements**: 21, shared by all saves, see `Achievement.java`
+
 ## spawns
 
 | entity | first meeting | after that |

@@ -71,6 +71,26 @@ public class GameLogicTest {
     }
 
     @Test
+    public void riftCarriesOneThing() {
+        GameState s = new GameState();
+        s.buildings[2] = 25;
+        s.upgrades[Upgrade.CLICK_POWER] = 4;
+        s.riftKind = GameState.RIFT_BUILDING;
+        s.riftIndex = 2;
+        s.resetRun();
+        assertEquals(25, s.buildings[2]);
+        assertEquals(0, s.upgrades[Upgrade.CLICK_POWER]);
+        assertEquals(GameState.RIFT_EMPTY, s.riftKind);
+
+        s.upgrades[Upgrade.CLICK_POWER] = 4;
+        s.riftKind = GameState.RIFT_UPGRADE;
+        s.riftIndex = Upgrade.CLICK_POWER;
+        s.adminEverUsed = true; // rift is closed in admin saves
+        s.resetRun();
+        assertEquals(0, s.upgrades[Upgrade.CLICK_POWER]);
+    }
+
+    @Test
     public void economyScales() {
         GameState s = new GameState();
         Economy eco = new Economy(s);

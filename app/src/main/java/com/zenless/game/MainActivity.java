@@ -3,16 +3,13 @@ package com.zenless.game;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
-import android.view.WindowInsets;
-import android.view.WindowInsetsController;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -27,14 +24,21 @@ import com.zenless.game.enemy.Enemy;
 import com.zenless.game.enemy.EnemyType;
 import com.zenless.game.enemy.EventManager;
 
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends Activity implements EventManager.Listener {
+    public static final String EXTRA_SLOT = "slot";
+    /** tutorial practice: EnemyType name to spawn in a throwaway save */
+    public static final String EXTRA_PRACTICE = "practice";
+
     private static final long OFFLINE_CAP_MS = 8 * 60 * 60 * 1000L;
     private static final int AUTOSAVE_EVERY_S = 30;
 
-    private final GameState state = new GameState();
-    private final Economy eco = new Economy(state);
+    private GameState state;
+    private Economy eco;
+    private int slot;
+    private EnemyType practice;
     private final Handler handler = new Handler();
 
     private Sfx sfx;
@@ -51,6 +55,8 @@ public class MainActivity extends Activity implements EventManager.Listener {
     private Button rebirthButton;
     private View adminPanel, adminButtons;
     private Switch adminSwitch;
+    private TextView riftInfo;
+    private Button riftButton;
 
     private boolean holding;
     private long lastFrame;
@@ -64,8 +70,17 @@ public class MainActivity extends Activity implements EventManager.Listener {
     protected void onCreate(Bundle saved) {
         super.onCreate(saved);
         setContentView(R.layout.activity_main);
-        setupFullscreen();
-        state.load(this);
+        Immersive.setup(this, findViewById(R.id.root));
+        Settings.load(this);
+        SaveSlots.migrate(this);
+
+        String p = getIntent().getStringExtra(EXTRA_PRACTICE);
+        practice = p == null ? null : EnemyType.valueOf(p);
+        slot = practice != null ? SaveSlots.PRACTICE : getIntent().getIntExtra(EXTRA_SLOT, 1);
+        if (practice != null) SaveSlots.delete(this, SaveSlots.PRACTICE);
+        state = SaveSlots.load(this, slot);
+        eco = new Economy(state);
+        if (practice != null) state.difficulty = Difficulty.HARD.ordinal();
         sfx = new Sfx(this);
         Textures.preload(this);
 
@@ -84,6 +99,16 @@ public class MainActivity extends Activity implements EventManager.Listener {
 
         FrameLayout layer = (FrameLayout) findViewById(R.id.enemyLayer);
         events = new EventManager(this, layer, sfx, state, eco, this);
+        if (practice != null) {
+            events.setDoorsEnabled(false);
+            // wait for layout so the entity knows the screen size
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!events.trigger(practice, false)) handler.postDelayed(this, 200);
+                }
+            }, 700);
+        }
 
         setupTabs();
         setupShop();
@@ -96,12 +121,12 @@ public class MainActivity extends Activity implements EventManager.Listener {
     @Override
     protected void onResume() {
         super.onResume();
-        grantOffline();
+        if (practice == null) grantOffline();
         running = true;
         lastFrame = SystemClock.uptimeMillis();
         handler.post(frameLoop);
         handler.postDelayed(secondLoop, 1000);
-        if (state.difficulty < 0) askDifficulty();
+        if (state.difficulty < 0 && practice == null) askDifficulty();
     }
 
     @Override
@@ -113,12 +138,18 @@ public class MainActivity extends Activity implements EventManager.Listener {
         events.pause();
         sfx.stopAll();
         holding = false;
-        state.save(this);
+        if (practice == null) {
+            state.save(this);
+        } else {
+            // leaving practice mid entity just ends it
+            finish();
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
         if (difficultyDialog != null) difficultyDialog.dismiss();
         sfx.release();
     }
@@ -127,52 +158,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         // dialogs and the swipe-to-peek bring the bars back, hide them again
-        if (hasFocus) hideSystemBars();
-    }
-
-    // ---- fullscreen ----
-
-    private void setupFullscreen() {
-        if (Build.VERSION.SDK_INT >= 28) {
-            WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-            getWindow().setAttributes(lp);
-            // draw under the notch but keep the ui itself clear of it
-            final View root = findViewById(R.id.root);
-            root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-                @Override
-                public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-                    android.view.DisplayCutout c = insets.getDisplayCutout();
-                    if (c != null) {
-                        v.setPadding(c.getSafeInsetLeft(), c.getSafeInsetTop(), c.getSafeInsetRight(), c.getSafeInsetBottom());
-                    } else {
-                        v.setPadding(0, 0, 0, 0);
-                    }
-                    return insets;
-                }
-            });
-        }
-        hideSystemBars();
-    }
-
-    @SuppressWarnings("deprecation")
-    private void hideSystemBars() {
-        if (Build.VERSION.SDK_INT >= 30) {
-            getWindow().setDecorFitsSystemWindows(false);
-            WindowInsetsController c = getWindow().getInsetsController();
-            if (c != null) {
-                c.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-                c.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-            }
-        } else {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        }
+        if (hasFocus) Immersive.hideBars(this);
     }
 
     @Override
@@ -214,10 +200,11 @@ public class MainActivity extends Activity implements EventManager.Listener {
             if (!running) return;
             // passive income tick
             state.earn(eco.hps());
-            if (++secondsSinceSave >= AUTOSAVE_EVERY_S) {
+            if (practice == null && ++secondsSinceSave >= AUTOSAVE_EVERY_S) {
                 secondsSinceSave = 0;
                 state.save(MainActivity.this);
             }
+            if (practice == null) announce(Achievement.check(MainActivity.this, state));
             refreshAll();
             handler.postDelayed(this, 1000);
         }
@@ -250,7 +237,8 @@ public class MainActivity extends Activity implements EventManager.Listener {
         boolean crit = eco.rollCrit();
         if (crit) p *= 10;
         state.earn(p);
-        state.runTaps++;
+        state.tapped();
+        if (Settings.haptics) circle.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         events.onPlayerTap();
         refreshTop();
         return "+" + Fmt.holos(p) + (crit ? "!" : "");
@@ -372,9 +360,21 @@ public class MainActivity extends Activity implements EventManager.Listener {
         adminSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton b, boolean on) {
+                if (on && !state.adminEverUsed) {
+                    confirmAdmin();
+                    return;
+                }
                 state.adminEnabled = on && state.adminUnlocked;
                 state.save(MainActivity.this);
                 refreshRebirth();
+            }
+        });
+        riftInfo = (TextView) header.findViewById(R.id.riftInfo);
+        riftButton = (Button) header.findViewById(R.id.riftButton);
+        riftButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickRift();
             }
         });
         bindSpawn(header, R.id.spawnA90, EnemyType.A90);
@@ -429,6 +429,66 @@ public class MainActivity extends Activity implements EventManager.Listener {
         });
     }
 
+    /** First time only: the admin panel turns progression off for this save forever. */
+    private void confirmAdmin() {
+        new AlertDialog.Builder(this, AlertDialog.THEME_HOLO_DARK)
+                .setTitle("Enable the admin panel?")
+                .setMessage("progression disabled. you can't get achievements or use the rift inside this save."
+                        + "\n\nthis stays even if you turn the panel off again.")
+                .setCancelable(false)
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int w) {
+                        adminSwitch.setChecked(false);
+                    }
+                })
+                .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int w) {
+                        state.adminEverUsed = true;
+                        state.adminEnabled = true;
+                        state.riftKind = GameState.RIFT_EMPTY;
+                        state.save(MainActivity.this);
+                        refreshRebirth();
+                    }
+                })
+                .show();
+    }
+
+    /** The rift carries one building stack or one upgrade tier into the next run. */
+    private void pickRift() {
+        if (state.progressionDisabled()) return;
+        final java.util.ArrayList<int[]> choices = new java.util.ArrayList<>();
+        java.util.ArrayList<String> names = new java.util.ArrayList<>();
+        for (int i = 0; i < Building.ALL.length; i++) {
+            if (state.buildings[i] <= 0) continue;
+            choices.add(new int[]{GameState.RIFT_BUILDING, i});
+            names.add(Building.ALL[i].name + " x" + state.buildings[i]);
+        }
+        for (int i = 0; i < Upgrade.ALL.length; i++) {
+            if (state.upgrades[i] <= 0) continue;
+            choices.add(new int[]{GameState.RIFT_UPGRADE, i});
+            names.add(Upgrade.ALL[i].name + " tier " + state.upgrades[i]);
+        }
+        if (choices.isEmpty()) {
+            toast("buy something first, the rift needs something to carry");
+            return;
+        }
+        new AlertDialog.Builder(this, AlertDialog.THEME_HOLO_DARK)
+                .setTitle("Put in the rift")
+                .setItems(names.toArray(new CharSequence[0]), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        state.riftKind = choices.get(which)[0];
+                        state.riftIndex = choices.get(which)[1];
+                        state.save(MainActivity.this);
+                        refreshRebirth();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private void adminSpawn(EnemyType t, boolean buffed) {
         if (!state.adminEnabled) return;
         if (!events.trigger(t, buffed)) toast("something is already here");
@@ -445,14 +505,21 @@ public class MainActivity extends Activity implements EventManager.Listener {
                 .setMessage("Your holos, shop and upgrades reset.\n\nYou get " + reward
                         + " superterrestrial item" + (reward == 1 ? "" : "s")
                         + " (+10% income each, forever)."
+                        + (state.riftLabel() != null && !state.progressionDisabled()
+                        ? "\n\nThe rift carries " + state.riftLabel() + " into your next run." : "")
                         + (state.adminUnlocked ? "" : "\n\nRebirthing also unlocks the admin panel."))
                 .setNegativeButton("Not yet", null)
                 .setPositiveButton("Rebirth", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface d, int w) {
+                        boolean superHard = state.diff() == Difficulty.SUPER_HARD && state.difficulty >= 0;
+                        boolean rift = state.riftKind != GameState.RIFT_EMPTY && !state.progressionDisabled();
                         long got = eco.rebirth();
                         if (got > 0) {
+                            if (rift) state.riftEverUsed = true;
                             state.save(MainActivity.this);
+                            announce(Achievement.check(MainActivity.this, state,
+                                    superHard ? Achievement.MASOCHIST : null));
                             toast("reborn. +" + got + " superterrestrial items");
                             refreshAll();
                             askDifficulty();
@@ -501,10 +568,28 @@ public class MainActivity extends Activity implements EventManager.Listener {
     @Override
     public void onEnemyFinished(Enemy e, boolean survived, double delta) {
         String who = e.label();
+        if (practice != null) {
+            toast(survived ? "you survived " + who + ". nice." : who + " got you. try again from the tutorial.");
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    finish();
+                }
+            }, 1200);
+            return;
+        }
         if (survived) toast("survived " + who + "  +" + Fmt.holos(delta) + " holos");
         else toast(who + " got you  " + Fmt.holos(delta) + " holos");
+        if (survived && e.isBuffed()) state.survivedSuper++;
         state.save(this);
+        announce(Achievement.check(this, state, survived ? Achievement.forEntity(e.type()) : null));
         refreshAll();
+    }
+
+    private void announce(List<Achievement> fresh) {
+        for (Achievement a : fresh) {
+            Toast.makeText(this, "achievement unlocked: " + a.title + "\n" + a.desc, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -537,6 +622,17 @@ public class MainActivity extends Activity implements EventManager.Listener {
         adminPanel.setVisibility(state.adminUnlocked ? View.VISIBLE : View.GONE);
         if (adminSwitch.isChecked() != state.adminEnabled) adminSwitch.setChecked(state.adminEnabled);
         adminButtons.setVisibility(state.adminEnabled ? View.VISIBLE : View.GONE);
+        if (state.progressionDisabled()) {
+            riftInfo.setText("the rift is closed in this save.");
+            riftButton.setEnabled(false);
+        } else {
+            String r = state.riftLabel();
+            riftInfo.setText(r == null
+                    ? "empty. put one building stack or upgrade tier in and it comes with you through the next rebirth."
+                    : "carrying " + r + " into your next run.");
+            riftButton.setEnabled(true);
+            riftButton.setText(r == null ? "PUT SOMETHING IN THE RIFT" : "SWAP WHAT'S IN THE RIFT");
+        }
     }
 
     private void refreshAll() {

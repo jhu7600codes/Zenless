@@ -28,6 +28,30 @@
         android:textColor="@color/text_secondary"
         android:textSize="12sp" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="THE RIFT"
+        android:textColor="@color/holo_purple"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/riftInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <Button
+        android:id="@+id/riftButton"
+        style="@style/HoloButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PUT SOMETHING IN THE RIFT" />
+
     <!-- admin panel, only after the first rebirth -->
     <LinearLayout
         android:id="@+id/adminPanel"

@@ -11,6 +11,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.zenless.game.GameState;
+import com.zenless.game.Settings;
 import com.zenless.game.Sfx;
 import com.zenless.game.Textures;
 
@@ -103,7 +104,7 @@ public class JumpscareController {
                 face.setTranslationX((rng.nextFloat() * 2 - 1) * amp);
                 face.setTranslationY((rng.nextFloat() * 2 - 1) * amp);
                 back.setTranslationX((rng.nextFloat() * 2 - 1) * amp * 0.5f);
-                face.setAlpha(rng.nextFloat() < 0.12f ? 0.3f : 1f);
+                if (!Settings.reduceFlashing) face.setAlpha(rng.nextFloat() < 0.12f ? 0.3f : 1f);
             }
         }, done, back, face);
     }

@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.zenless.game.Settings;
 import com.zenless.game.Sfx;
 import com.zenless.game.Textures;
 
@@ -49,7 +50,7 @@ public class A90Enemy extends Enemy {
         appearMs = APPEAR_MS;
         windowMs = scaled(WINDOW_MS);
 
-        flash = addDim(0x55FF0000);
+        flash = addDim(Settings.reduceFlashing ? 0x66000000 : 0x55FF0000);
         int size = (int) (Math.min(layerW(), layerH()) * 0.55f);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT);
         // somewhere random but fully on screen

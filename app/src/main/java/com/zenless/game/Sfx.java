@@ -64,7 +64,7 @@ public final class Sfx {
     }
 
     public void play(int id) {
-        if (!ready) return;
+        if (!ready || !Settings.sound) return;
         if (id == SAFE) {
             playChime();
             return;

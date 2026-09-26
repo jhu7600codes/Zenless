@@ -44,6 +44,7 @@ public class EventManager implements EnemyHost {
     private Enemy current;
     private long doorTimer = DOOR_MS;
     private int quietDoors;
+    private boolean doorsEnabled = true;
     private double lastDelta;
 
     public EventManager(Context ctx, FrameLayout layer, Sfx sfx, GameState state, Economy eco, Listener listener) {
@@ -76,7 +77,7 @@ public class EventManager implements EnemyHost {
             current.dispatchTick(dt);
             return; // doors stay shut while something is here
         }
-        if (state.difficulty < 0) return; // run hasn't started, still picking a difficulty
+        if (state.difficulty < 0 || !doorsEnabled) return; // still picking a difficulty, or tutorial practice
         doorTimer -= dt;
         if (doorTimer <= 0) {
             doorTimer = doorMs();
@@ -101,6 +102,10 @@ public class EventManager implements EnemyHost {
         current = t.create();
         listener.onEnemySpawned(current);
         current.start(this, buffed);
+    }
+
+    public void setDoorsEnabled(boolean on) {
+        doorsEnabled = on;
     }
 
     /** New run: fresh door timer, no leftover quiet doors. */
