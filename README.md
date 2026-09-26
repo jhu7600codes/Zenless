@@ -17,6 +17,9 @@ holo themed clicker game for android, with doors-style entities that show up whi
 | figure | door 50 and door 100 | 2% after door 100 |
 | a-90b | door 70 | 4% |
 
+0.001% of meet-and-greet doors bring a SUPER version (red tint, half the reaction time, double penalty and reward),
+and door 1 has a 0.001% chance of `???`. admin panel: tap a spawn button for the normal entity, hold it for the SUPER one.
+
 the 2 doors after an encounter are quiet (scripted meetings still happen). tweak it all in `enemy/SpawnTable.java`.
 
 ## difficulty

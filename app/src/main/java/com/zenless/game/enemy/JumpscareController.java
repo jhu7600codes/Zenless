@@ -60,6 +60,9 @@ public class JumpscareController {
                 lunge(f.length > 0 ? f[0] : null, 0xFF200000, ImageView.ScaleType.FIT_CENTER, Sfx.SCREAM_FIGURE, done);
                 break;
             }
+            case SECRET:
+                lunge(Textures.get(ctx, Textures.ICON), 0xFF000000, ImageView.ScaleType.FIT_CENTER, Sfx.SCREAM_RUSH, done);
+                break;
             default:
                 done.run();
         }

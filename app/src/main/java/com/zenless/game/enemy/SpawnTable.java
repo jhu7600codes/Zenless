@@ -15,6 +15,9 @@ public final class SpawnTable {
     /** doors after an encounter where nothing random spawns (scripted meetings still do) */
     public static final int QUIET_DOORS = 2;
 
+    /** 0.001%: a meet-and-greet door brings the SUPER version, or door 1 brings ??? */
+    public static final double RARE_CHANCE = 0.00001;
+
     private SpawnTable() {}
 
     /** Door of the first guaranteed meeting in a run. */
@@ -61,6 +64,7 @@ public final class SpawnTable {
      * @param quiet true right after an encounter, only scripted meetings can happen then
      */
     public static EnemyType roll(int door, Difficulty d, boolean quiet, Random rng) {
+        if (door == 1 && rng.nextDouble() < RARE_CHANCE) return EnemyType.SECRET;
         for (EnemyType t : EnemyType.values()) {
             if (d.allows(t) && scripted(t, door, d)) return t;
         }

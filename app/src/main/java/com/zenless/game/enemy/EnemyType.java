@@ -13,6 +13,10 @@ public enum EnemyType {
     },
     FIGURE("Figure") {
         @Override public Enemy create() { return new FigureEnemy(); }
+    },
+    /** 0.001% on door 1. never rolled normally, see SpawnTable */
+    SECRET("???") {
+        @Override public Enemy create() { return new SecretEnemy(); }
     };
 
     public final String label;

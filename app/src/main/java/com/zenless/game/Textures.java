@@ -34,6 +34,8 @@ public final class Textures {
     public static final String RUSH_NORMAL = "rush/rush-normal.webp";
     public static final String RUSH_JUMPSCARE = "rush/rush-jumpscare.jpg";
 
+    public static final String ICON = "icon.jpg";
+
     /** frame folders, see {@link #animation} */
     public static final String FIGURE_IDLE = "figure/figure-idle";
     public static final String FIGURE_RUNNING = "figure/figure-running";

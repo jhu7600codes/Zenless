@@ -25,6 +25,7 @@ public class RushEnemy extends Enemy {
     private TextView hint;
     private ImageView sprite;
     private boolean passing;
+    private long cueMs;
     private int spriteSize;
     private final Random rng = new Random();
 
@@ -49,26 +50,27 @@ public class RushEnemy extends Enemy {
         dark = addDim(0x00000000);
         hint = addHint("the lights flicker...", Gravity.CENTER, 24);
         hint.setAlpha(0f);
+        cueMs = buffed ? CUE_MS / 2 : CUE_MS;
         host.sfx().play(Sfx.RUSH_CUE);
     }
 
     @Override
     public void tick(long dt) {
         if (!passing) {
-            float t = elapsed / (float) CUE_MS;
+            float t = elapsed / (float) cueMs;
             // flicker gets more violent as it gets close
             boolean off = rng.nextFloat() < 0.05f + 0.35f * t;
             int alpha = off ? (int) (120 + 120 * t) : (int) (60 * t);
             dark.setBackgroundColor(alpha << 24);
             hint.setAlpha(Math.min(1f, t * 3));
             if (t > 0.5f) hint.setText("hold to hide");
-            if (elapsed >= CUE_MS) arrive();
+            if (elapsed >= cueMs) arrive();
         } else {
             if (!holding()) {
                 fail();
                 return;
             }
-            float p = (elapsed - CUE_MS) / (float) PASS_MS;
+            float p = (elapsed - cueMs) / (float) (buffed ? PASS_MS / 2 : PASS_MS);
             int w = spriteSize;
             sprite.setTranslationX(-w + (layerW() + w) * p);
             sprite.setTranslationY(rng.nextInt(dp(16) + 1) - dp(8));

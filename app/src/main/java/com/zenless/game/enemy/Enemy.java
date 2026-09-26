@@ -22,6 +22,8 @@ public abstract class Enemy {
     protected EnemyHost host;
     protected long elapsed;
     private boolean resolved;
+    /** the 0.001% "super" version: half the reaction time, red tint, double stakes */
+    protected boolean buffed;
     private final List<View> views = new ArrayList<>();
 
     // press tracking so subclasses can tell a quick tap from a hold
@@ -34,6 +36,26 @@ public abstract class Enemy {
 
     /** Seconds of income granted for surviving. */
     protected abstract double rewardSeconds();
+
+    /** Called by the event manager: spawn, then the buffed overlay on top of everything. */
+    public final void start(EnemyHost host, boolean buffed) {
+        this.buffed = buffed;
+        spawn(host);
+        if (buffed) {
+            addDim(0x40FF0000);
+            TextView t = addHint("SUPER " + type().label.toUpperCase(java.util.Locale.US), Gravity.TOP | Gravity.CENTER_HORIZONTAL, 16);
+            t.setTextColor(0xFFFF4444);
+        }
+    }
+
+    public final boolean isBuffed() {
+        return buffed;
+    }
+
+    /** Name for toasts, e.g. "SUPER Rush". */
+    public final String label() {
+        return (buffed ? "SUPER " : "") + type().label;
+    }
 
     /** Build views and start sounds. */
     public void spawn(EnemyHost host) {
@@ -54,7 +76,7 @@ public abstract class Enemy {
         host.jumpscares().play(type(), new Runnable() {
             @Override
             public void run() {
-                host.penalize(penaltyFraction());
+                host.penalize(Math.min(0.5, penaltyFraction() * (buffed ? 2 : 1)));
                 host.finished(Enemy.this, false);
             }
         });
@@ -63,7 +85,7 @@ public abstract class Enemy {
     /** Player survived. Default: remove views, reward, done. */
     public void onSuccess() {
         clearViews();
-        host.reward(rewardSeconds());
+        host.reward(rewardSeconds() * (buffed ? 2 : 1));
         host.finished(this, true);
     }
 
@@ -114,7 +136,7 @@ public abstract class Enemy {
     }
 
     protected final long scaled(long ms) {
-        return (long) (ms * host.reactionScale());
+        return (long) (ms * host.reactionScale() * (buffed ? 0.5 : 1));
     }
 
     // ---- view helpers ----

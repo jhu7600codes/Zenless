@@ -83,21 +83,24 @@ public class EventManager implements EnemyHost {
             state.door++;
             EnemyType t = rollDoor();
             listener.onDoor(state.door, t);
-            if (t != null) spawn(t);
+            if (t != null) {
+                boolean meet = t != EnemyType.SECRET && SpawnTable.scripted(t, state.door, state.diff());
+                spawn(t, meet && rng.nextDouble() < SpawnTable.RARE_CHANCE);
+            }
         }
     }
 
     /** Admin panel trigger. Ignores the doors, but still one at a time. */
-    public boolean trigger(EnemyType t) {
+    public boolean trigger(EnemyType t, boolean buffed) {
         if (current != null || layer.getWidth() == 0) return false;
-        spawn(t);
+        spawn(t, buffed);
         return true;
     }
 
-    private void spawn(EnemyType t) {
+    private void spawn(EnemyType t, boolean buffed) {
         current = t.create();
         listener.onEnemySpawned(current);
-        current.spawn(this);
+        current.start(this, buffed);
     }
 
     /** New run: fresh door timer, no leftover quiet doors. */

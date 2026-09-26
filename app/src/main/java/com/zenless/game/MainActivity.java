@@ -381,6 +381,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
         bindSpawn(header, R.id.spawnA90B, EnemyType.A90B);
         bindSpawn(header, R.id.spawnRush, EnemyType.RUSH);
         bindSpawn(header, R.id.spawnFigure, EnemyType.FIGURE);
+        bindSpawn(header, R.id.spawnSecret, EnemyType.SECRET);
 
         lists[2].addHeaderView(header, null, false);
         lists[2].setAdapter(new RowAdapter(MetaUpgrade.ALL.length) {
@@ -410,14 +411,27 @@ public class MainActivity extends Activity implements EventManager.Listener {
         });
     }
 
+    /** tap spawns the normal entity, long press the SUPER one */
     private void bindSpawn(View root, int id, final EnemyType t) {
-        root.findViewById(id).setOnClickListener(new View.OnClickListener() {
+        View b = root.findViewById(id);
+        b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!state.adminEnabled) return;
-                if (!events.trigger(t)) toast("something is already here");
+                adminSpawn(t, false);
             }
         });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                adminSpawn(t, t != EnemyType.SECRET);
+                return true;
+            }
+        });
+    }
+
+    private void adminSpawn(EnemyType t, boolean buffed) {
+        if (!state.adminEnabled) return;
+        if (!events.trigger(t, buffed)) toast("something is already here");
     }
 
     private void confirmRebirth() {
@@ -486,7 +500,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
 
     @Override
     public void onEnemyFinished(Enemy e, boolean survived, double delta) {
-        String who = e.type().label;
+        String who = e.label();
         if (survived) toast("survived " + who + "  +" + Fmt.holos(delta) + " holos");
         else toast(who + " got you  " + Fmt.holos(delta) + " holos");
         state.save(this);

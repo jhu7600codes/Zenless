@@ -38,6 +38,8 @@ public class GameLogicTest {
         assertEquals(0.06, SpawnTable.chance(EnemyType.A90, h, 31), 1e-9);
         assertEquals(0, SpawnTable.chance(EnemyType.FIGURE, h, 99), 0);
         assertEquals(0.02, SpawnTable.chance(EnemyType.FIGURE, h, 101), 1e-9);
+        // ??? never shows up through the normal rolls
+        for (Difficulty d : Difficulty.values()) assertEquals(0, SpawnTable.chance(EnemyType.SECRET, d, 500), 0);
         // quiet doors block random spawns
         for (int i = 0; i < 1000; i++) assertNull(SpawnTable.roll(200, h, true, rng));
     }

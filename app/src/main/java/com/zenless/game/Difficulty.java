@@ -37,6 +37,7 @@ public enum Difficulty {
     }
 
     public boolean allows(EnemyType t) {
+        if (t == EnemyType.SECRET) return false; // only ever from its own door 1 roll
         switch (this) {
             case EASY:
                 return false;
