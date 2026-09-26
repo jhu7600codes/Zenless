@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 
-import com.zenless.game.Difficulty;
 import com.zenless.game.Economy;
 import com.zenless.game.GameState;
 import com.zenless.game.Sfx;
@@ -12,8 +11,8 @@ import com.zenless.game.Sfx;
 import java.util.Random;
 
 /**
- * Runs the doors. Every DOOR_MS a door opens: 51% nothing, 49% an entity rolls in
- * (only one at a time, with a cooldown after each encounter). Admin triggers bypass the roll.
+ * Runs the doors. A door opens every DOOR_MS (sooner while tapping), and {@link SpawnTable}
+ * decides who's behind it. One entity at a time. Admin triggers bypass all of it.
  */
 public class EventManager implements EnemyHost {
 
@@ -30,7 +29,8 @@ public class EventManager implements EnemyHost {
     }
 
     public static final long DOOR_MS = 30_000;
-    public static final long COOLDOWN_MS = 20_000;
+    /** each tap on the circle brings the next door this much closer */
+    public static final long TAP_BOOST_MS = 250;
 
     private final Context ctx;
     private final FrameLayout layer;
@@ -43,7 +43,7 @@ public class EventManager implements EnemyHost {
 
     private Enemy current;
     private long doorTimer = DOOR_MS;
-    private long cooldown;
+    private int quietDoors;
     private double lastDelta;
 
     public EventManager(Context ctx, FrameLayout layer, Sfx sfx, GameState state, Economy eco, Listener listener) {
@@ -56,11 +56,15 @@ public class EventManager implements EnemyHost {
         this.jumpscares = new JumpscareController(ctx, layer, sfx, state);
     }
 
-    /** The spawn roll from the design doc. Returns null for "no spawn". */
-    public EnemyType rollDoor() {
-        Difficulty d = state.diff();
-        if (rng.nextDouble() >= d.spawnChance) return null;
-        return d.pickEntity(rng.nextInt(101));
+    private EnemyType rollDoor() {
+        EnemyType t = SpawnTable.roll(state.door, state.diff(), quietDoors > 0, rng);
+        if (quietDoors > 0) quietDoors--;
+        return t;
+    }
+
+    /** Tapping walks you through the rooms faster. */
+    public void onPlayerTap() {
+        if (current == null && state.difficulty >= 0) doorTimer -= TAP_BOOST_MS;
     }
 
     private long doorMs() {
@@ -73,18 +77,17 @@ public class EventManager implements EnemyHost {
             return; // doors stay shut while something is here
         }
         if (state.difficulty < 0) return; // run hasn't started, still picking a difficulty
-        if (cooldown > 0) cooldown -= dt;
         doorTimer -= dt;
         if (doorTimer <= 0) {
             doorTimer = doorMs();
             state.door++;
-            EnemyType t = cooldown > 0 ? null : rollDoor();
+            EnemyType t = rollDoor();
             listener.onDoor(state.door, t);
             if (t != null) spawn(t);
         }
     }
 
-    /** Admin panel trigger. Ignores the roll and the cooldown, but still one at a time. */
+    /** Admin panel trigger. Ignores the doors, but still one at a time. */
     public boolean trigger(EnemyType t) {
         if (current != null || layer.getWidth() == 0) return false;
         spawn(t);
@@ -97,14 +100,10 @@ public class EventManager implements EnemyHost {
         current.spawn(this);
     }
 
-    private long cooldownMs() {
-        return (long) (COOLDOWN_MS / state.diff().doorSpeed);
-    }
-
-    /** New run: fresh door timer, no leftover cooldown. */
+    /** New run: fresh door timer, no leftover quiet doors. */
     public void resetDoors() {
         doorTimer = doorMs();
-        cooldown = 0;
+        quietDoors = 0;
     }
 
     public boolean a90bOriginalSprites() {
@@ -133,7 +132,7 @@ public class EventManager implements EnemyHost {
         if (current != null) {
             current.abort();
             current = null;
-            cooldown = cooldownMs();
+            quietDoors = SpawnTable.QUIET_DOORS;
         }
         doorTimer = doorMs();
     }
@@ -195,7 +194,7 @@ public class EventManager implements EnemyHost {
     public void finished(Enemy e, boolean survived) {
         if (e != current) return;
         current = null;
-        cooldown = cooldownMs();
+        quietDoors = SpawnTable.QUIET_DOORS;
         doorTimer = doorMs();
         if (survived) state.entitiesSurvived++;
         else state.entitiesFailed++;

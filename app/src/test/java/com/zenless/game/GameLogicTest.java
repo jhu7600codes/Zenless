@@ -4,8 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.zenless.game.enemy.EnemyType;
+import com.zenless.game.enemy.SpawnTable;
 
 import org.junit.Test;
+
+import java.util.Random;
 
 public class GameLogicTest {
 
@@ -21,26 +24,35 @@ public class GameLogicTest {
     }
 
     @Test
-    public void entityRollMatchesSpec() {
+    public void scriptedFirstMeetings() {
+        Random rng = new Random(1);
         Difficulty h = Difficulty.HARD;
-        assertEquals(0.49, h.spawnChance, 0);
-        assertEquals(EnemyType.RUSH, h.pickEntity(25));
-        for (int e = 26; e < 50; e++) assertEquals(EnemyType.A90B, h.pickEntity(e));
-        for (int e = 0; e < 25; e++) assertEquals(EnemyType.FIGURE, h.pickEntity(e));
-        for (int e = 50; e <= 100; e++) assertEquals(EnemyType.A90, h.pickEntity(e));
-        assertEquals(h.pickEntity(60), Difficulty.SUPER_HARD.pickEntity(60));
+        assertEquals(EnemyType.RUSH, SpawnTable.roll(10, h, true, rng));
+        assertEquals(EnemyType.A90, SpawnTable.roll(30, h, false, rng));
+        assertEquals(EnemyType.FIGURE, SpawnTable.roll(50, h, true, rng));
+        assertEquals(EnemyType.A90B, SpawnTable.roll(70, h, false, rng));
+        assertEquals(EnemyType.FIGURE, SpawnTable.roll(100, h, false, rng));
+        // nothing random before the first meeting
+        for (int door = 1; door < 10; door++) assertNull(SpawnTable.roll(door, h, false, rng));
+        assertEquals(0, SpawnTable.chance(EnemyType.A90, h, 30), 0);
+        assertEquals(0.06, SpawnTable.chance(EnemyType.A90, h, 31), 1e-9);
+        assertEquals(0, SpawnTable.chance(EnemyType.FIGURE, h, 99), 0);
+        assertEquals(0.02, SpawnTable.chance(EnemyType.FIGURE, h, 101), 1e-9);
+        // quiet doors block random spawns
+        for (int i = 0; i < 1000; i++) assertNull(SpawnTable.roll(200, h, true, rng));
     }
 
     @Test
     public void difficultiesDiffer() {
-        for (int e = 0; e <= 100; e++) {
-            assertNull(Difficulty.EASY.pickEntity(e));
-            assertEquals(EnemyType.FIGURE, Difficulty.NORMAL.pickEntity(e));
+        Random rng = new Random(2);
+        for (int door = 1; door <= 300; door++) {
+            assertNull(SpawnTable.roll(door, Difficulty.EASY, false, rng));
+            EnemyType t = SpawnTable.roll(door, Difficulty.NORMAL, false, rng);
+            if (t != null) assertEquals(EnemyType.FIGURE, t);
         }
-        assertEquals(0, Difficulty.EASY.spawnChance, 0);
-        assertEquals(0.98, Difficulty.EXTREME.spawnChance, 1e-9);
-        assertEquals(EnemyType.A90B, Difficulty.EXTREME.pickEntity(65));
-        assertEquals(1.0, Difficulty.SUPER_HARD.spawnChance, 0);
+        assertEquals(0.16, SpawnTable.chance(EnemyType.A90B, Difficulty.EXTREME, 80), 1e-9);
+        assertEquals(0.16, SpawnTable.chance(EnemyType.RUSH, Difficulty.EXTREME, 80), 1e-9);
+        assertEquals(0.08 * 6.47, SpawnTable.chance(EnemyType.RUSH, Difficulty.SUPER_HARD, 80), 1e-9);
         assertEquals(3.0, Difficulty.SUPER_HARD.doorSpeed, 0);
 
         GameState s = new GameState();

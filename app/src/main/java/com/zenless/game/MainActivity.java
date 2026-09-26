@@ -251,6 +251,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
         if (crit) p *= 10;
         state.earn(p);
         state.runTaps++;
+        events.onPlayerTap();
         refreshTop();
         return "+" + Fmt.holos(p) + (crit ? "!" : "");
     }

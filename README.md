@@ -4,8 +4,20 @@ holo themed clicker game for android, with doors-style entities that show up whi
 
 - pure java, no androidx, `Theme.Holo.NoActionBar` straight from the framework (minSdk 19, targetSdk 35), immersive fullscreen
 - tap the big blue circle for holos, buy buildings in the shop, tiered upgrades, rebirth for superterrestrial items
-- every 30s a door opens: 51% nothing, 49% an entity (rush / a-90b / figure / a-90 by a 0-100 roll)
+- a door opens every 30s, each tap on the circle brings it 0.25s closer
+- doors/rooms style spawns: each entity has a scripted first meeting, then a small chance per door
 - first rebirth unlocks a per-save admin panel toggle (off by default) to spawn entities manually
+
+## spawns
+
+| entity | first meeting | after that |
+|---|---|---|
+| rush | door 10 | 8% per door |
+| a-90 | door 30 | 6% |
+| figure | door 50 and door 100 | 2% after door 100 |
+| a-90b | door 70 | 4% |
+
+the 2 doors after an encounter are quiet (scripted meetings still happen). tweak it all in `enemy/SpawnTable.java`.
 
 ## difficulty
 
@@ -15,9 +27,9 @@ asked at the start of every run (first launch and after each rebirth):
 |---|---|---|
 | easy | none, pure farming | 20% cheaper |
 | normal | only figure | 20% cheaper |
-| hard | all, normal 49% door spawns | normal |
-| extreme | 98% door spawns, more a-90b in his original sprites | normal |
-| SUPER HARD MODE | every door (+547%), doors 3x faster | +50% prices, upgrades and buildings 50% weaker |
+| hard | all, chances above | normal |
+| extreme | double chances, a-90b 4x in his original sprites | normal |
+| SUPER HARD MODE | chances +547%, doors 3x faster | +50% prices, upgrades and buildings 50% weaker |
 
 ## build
 
