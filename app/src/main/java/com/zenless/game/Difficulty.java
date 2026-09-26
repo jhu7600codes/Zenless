@@ -5,7 +5,7 @@ import com.zenless.game.enemy.EnemyType;
 /** Picked at the start of every run. Changes shop prices, upgrade strength and entity doors. */
 public enum Difficulty {
     EASY("Easy", "no entities, cheaper shop", 0.8, 1.0, 0.0, 1.0),
-    NORMAL("Normal", "only Figure, cheaper shop", 0.8, 1.0, 1.0, 1.0),
+    NORMAL("Normal", "only Figure, every 30 doors, cheaper shop", 0.8, 1.0, 1.0, 1.0),
     HARD("Hard", "every entity, normal spawns and prices", 1.0, 1.0, 1.0, 1.0),
     EXTREME("Extreme", "double spawns, more A-90B in his original look", 1.0, 1.0, 2.0, 1.0),
     SUPER_HARD("SUPER HARD MODE", "+50% prices, -50% power, +547% spawns, 3x faster doors", 1.5, 0.5, 6.47, 3.0);

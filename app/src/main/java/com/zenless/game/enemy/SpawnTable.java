@@ -28,8 +28,12 @@ public final class SpawnTable {
         }
     }
 
+    /** normal mode: figure is the only entity and shows up on a fixed rhythm instead */
+    public static final int NORMAL_FIGURE_EVERY = 30;
+
     /** Figure is always waiting at the library (50) and the courtyard (100), like in Doors. */
-    public static boolean scripted(EnemyType t, int door) {
+    public static boolean scripted(EnemyType t, int door, Difficulty d) {
+        if (d == Difficulty.NORMAL) return t == EnemyType.FIGURE && door % NORMAL_FIGURE_EVERY == 0;
         if (door == firstDoor(t)) return true;
         return t == EnemyType.FIGURE && door == 100;
     }
@@ -46,7 +50,7 @@ public final class SpawnTable {
     }
 
     public static double chance(EnemyType t, Difficulty d, int door) {
-        if (!d.allows(t)) return 0;
+        if (!d.allows(t) || d == Difficulty.NORMAL) return 0;
         int after = t == EnemyType.FIGURE ? 100 : firstDoor(t);
         if (door <= after) return 0;
         return Math.min(1, baseChance(t) * d.chanceMult(t));
@@ -58,7 +62,7 @@ public final class SpawnTable {
      */
     public static EnemyType roll(int door, Difficulty d, boolean quiet, Random rng) {
         for (EnemyType t : EnemyType.values()) {
-            if (d.allows(t) && scripted(t, door)) return t;
+            if (d.allows(t) && scripted(t, door, d)) return t;
         }
         if (quiet) return null;
         // random order so nobody is favored when several would roll at once

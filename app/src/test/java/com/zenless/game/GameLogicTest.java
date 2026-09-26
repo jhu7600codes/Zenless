@@ -48,7 +48,8 @@ public class GameLogicTest {
         for (int door = 1; door <= 300; door++) {
             assertNull(SpawnTable.roll(door, Difficulty.EASY, false, rng));
             EnemyType t = SpawnTable.roll(door, Difficulty.NORMAL, false, rng);
-            if (t != null) assertEquals(EnemyType.FIGURE, t);
+            if (door % 30 == 0) assertEquals(EnemyType.FIGURE, t);
+            else assertNull(t);
         }
         assertEquals(0.16, SpawnTable.chance(EnemyType.A90B, Difficulty.EXTREME, 80), 1e-9);
         assertEquals(0.16, SpawnTable.chance(EnemyType.RUSH, Difficulty.EXTREME, 80), 1e-9);

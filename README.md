@@ -26,7 +26,7 @@ asked at the start of every run (first launch and after each rebirth):
 | mode | entities | prices |
 |---|---|---|
 | easy | none, pure farming | 20% cheaper |
-| normal | only figure | 20% cheaper |
+| normal | only figure, every 30 doors | 20% cheaper |
 | hard | all, chances above | normal |
 | extreme | double chances, a-90b 4x in his original sprites | normal |
 | SUPER HARD MODE | chances +547%, doors 3x faster | +50% prices, upgrades and buildings 50% weaker |
