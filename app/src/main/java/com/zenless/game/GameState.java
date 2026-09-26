@@ -43,6 +43,12 @@ public final class GameState {
     public int riftIndex;
     public boolean riftEverUsed;
     public long lifetimeTaps;
+
+    // admin panel cheats
+    public boolean cheatNoEntities;
+    public boolean cheatInvincible;
+    public boolean cheatAutoClick;
+    public int cheatIncomeMult = 1;
     public int survivedSuper;
     public double lifetimeEarned;
     public int entitiesSurvived;
@@ -76,6 +82,10 @@ public final class GameState {
         riftEverUsed = p.getBoolean("riftEverUsed", false);
         lifetimeTaps = p.getLong("lifetimeTaps", runTaps);
         survivedSuper = p.getInt("survivedSuper", 0);
+        cheatNoEntities = p.getBoolean("cheatNoEntities", false);
+        cheatInvincible = p.getBoolean("cheatInvincible", false);
+        cheatAutoClick = p.getBoolean("cheatAutoClick", false);
+        cheatIncomeMult = Math.max(1, p.getInt("cheatIncomeMult", 1));
     }
 
     /** Admin panel was used at some point: achievements and the rift are off for good. */
@@ -110,6 +120,10 @@ public final class GameState {
         e.putBoolean("riftEverUsed", riftEverUsed);
         e.putLong("lifetimeTaps", lifetimeTaps);
         e.putInt("survivedSuper", survivedSuper);
+        e.putBoolean("cheatNoEntities", cheatNoEntities);
+        e.putBoolean("cheatInvincible", cheatInvincible);
+        e.putBoolean("cheatAutoClick", cheatAutoClick);
+        e.putInt("cheatIncomeMult", cheatIncomeMult);
         e.apply();
     }
 

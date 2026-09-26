@@ -3,10 +3,10 @@
 holo themed clicker game for android, with doors-style entities that show up while you tap.
 
 - pure java, no androidx, `Theme.Holo.NoActionBar` straight from the framework (minSdk 19, targetSdk 35), immersive fullscreen
-- tap the big blue circle for holos, buy buildings in the shop, tiered upgrades, rebirth for superterrestrial items
+- tap the big blue circle for holos, buy buildings in the shop, tiered upgrades, rebirth for Supers
 - a door opens every 30s, each tap on the circle brings it 0.25s closer
 - doors/rooms style spawns: each entity has a scripted first meeting, then a small chance per door
-- first rebirth unlocks a per-save admin panel toggle (off by default) to spawn entities manually
+- first rebirth unlocks the ADMIN button next to the holo counter: a full cheat panel (holos, Supers, doors, entities, difficulty, rebirths, shop, income multiplier, autoclicker, no entities, invincible). opening it disables achievements and the rift in that save for good
 
 ## title screen
 
@@ -29,7 +29,7 @@ logo, PLAY / SETTINGS / TUTORIAL, and a row of achievement badges up top (tap on
 | a-90b | door 70 | 4% |
 
 0.001% of meet-and-greet doors bring a SUPER version (red tint, half the reaction time, double penalty and reward),
-and door 1 has a 0.001% chance of `???`. admin panel: tap a spawn button for the normal entity, hold it for the SUPER one.
+and door 1 has a 0.001% chance of `???`. admin panel: tap an entity button to spawn it, hold it for the SUPER one.
 
 the 2 doors after an encounter are quiet (scripted meetings still happen). tweak it all in `enemy/SpawnTable.java`.
 

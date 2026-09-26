@@ -76,10 +76,10 @@ public class TutorialActivity extends Activity {
                             + "almost nobody has seen it. if you do, don't let it get away."),
             new Page("Rebirth", null, false, null,
                     "once you've earned 1M holos in a run you can rebirth.\n\n"
-                            + "everything in the run resets, but you get superterrestrial items: "
+                            + "everything in the run resets, but you get Supers: "
                             + "+10% income each, forever, and you can spend them on permanent unlocks.\n\n"
                             + "more holos in a run means more items: 4M gives 2, 100M gives 10, 1B gives 31.\n\n"
-                            + "your first rebirth also unlocks the admin panel. careful: turning it on "
+                            + "your first rebirth also unlocks the ADMIN button next to your holos. careful: opening it "
                             + "disables achievements and the rift in that save for good."),
             new Page("The Rift", null, false, null,
                     "before you rebirth, put one thing in the rift: a building stack or an upgrade tier.\n\n"

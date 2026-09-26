@@ -1,6 +1,6 @@
 package com.zenless.game;
 
-/** Permanent unlocks bought with superterrestrial items. Survive rebirths. */
+/** Permanent unlocks bought with Supers. Survive rebirths. */
 public final class MetaUpgrade {
     public static final int HEAD_START = 0;
     public static final int STARTER_DRONES = 1;

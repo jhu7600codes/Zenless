@@ -13,9 +13,9 @@ public final class Economy {
         this.s = s;
     }
 
-    /** Permanent income multiplier from superterrestrial items and meta upgrades. */
+    /** Permanent income multiplier from Supers and meta upgrades (and the admin income cheat). */
     public double globalMult() {
-        return (1 + 0.10 * s.stLifetime) * (1 + 0.25 * s.meta[MetaUpgrade.ETERNAL_GLOW]);
+        return (1 + 0.10 * s.stLifetime) * (1 + 0.25 * s.meta[MetaUpgrade.ETERNAL_GLOW]) * s.cheatIncomeMult;
     }
 
     /** Per tier upgrade effects get scaled by this (super hard halves them). */
@@ -115,9 +115,18 @@ public final class Economy {
         return true;
     }
 
+    /** Admin: rebirth no matter how much was earned, at least 1 Super. */
+    public long forceRebirth() {
+        return doRebirth(Math.max(1, rebirthReward()));
+    }
+
     public long rebirth() {
         long reward = rebirthReward();
         if (reward <= 0) return 0;
+        return doRebirth(reward);
+    }
+
+    private long doRebirth(long reward) {
         s.stItems += reward;
         s.stLifetime += reward;
         s.rebirths++;

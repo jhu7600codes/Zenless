@@ -58,6 +58,7 @@ public class EventManager implements EnemyHost {
     }
 
     private EnemyType rollDoor() {
+        if (state.cheatNoEntities) return null;
         EnemyType t = SpawnTable.roll(state.door, state.diff(), quietDoors > 0, rng);
         if (quietDoors > 0) quietDoors--;
         return t;
@@ -102,6 +103,17 @@ public class EventManager implements EnemyHost {
         current = t.create();
         listener.onEnemySpawned(current);
         current.start(this, buffed);
+    }
+
+    /** Admin: the next door opens on the next frame. */
+    public void openDoorNow() {
+        if (current == null) doorTimer = 0;
+    }
+
+    /** Admin: walk past doors without rolling anything. */
+    public void skipDoors(int n) {
+        state.door += n;
+        doorTimer = doorMs();
     }
 
     public void setDoorsEnabled(boolean on) {
@@ -184,6 +196,10 @@ public class EventManager implements EnemyHost {
 
     @Override
     public double penalize(double fraction) {
+        if (state.cheatInvincible) {
+            lastDelta = 0;
+            return 0;
+        }
         double lost = Math.floor(state.holos * fraction * eco.penaltyScale());
         state.holos -= lost;
         lastDelta = -lost;

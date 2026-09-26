@@ -41,6 +41,24 @@
                 android:textSize="16sp" />
 
             <TextView
+                android:id="@+id/adminButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/holos"
+                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@id/holosLabel"
+                android:background="@drawable/holo_button_bg"
+                android:paddingLeft="10dp"
+                android:paddingTop="4dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="4dp"
+                android:text="ADMIN"
+                android:textColor="@color/holo_red"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/rates"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

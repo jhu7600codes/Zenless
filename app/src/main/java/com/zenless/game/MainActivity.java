@@ -12,11 +12,9 @@ import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,8 +51,9 @@ public class MainActivity extends Activity implements EventManager.Listener {
 
     private TextView rebirthInfo, statsText;
     private Button rebirthButton;
-    private View adminPanel, adminButtons;
-    private Switch adminSwitch;
+    private View adminButton;
+    private AdminPanel admin;
+    private long autoClickAcc;
     private TextView riftInfo;
     private Button riftButton;
 
@@ -99,6 +98,30 @@ public class MainActivity extends Activity implements EventManager.Listener {
 
         FrameLayout layer = (FrameLayout) findViewById(R.id.enemyLayer);
         events = new EventManager(this, layer, sfx, state, eco, this);
+        admin = new AdminPanel(this, state, eco, events, new AdminPanel.Host() {
+            @Override
+            public void refreshAll() {
+                MainActivity.this.refreshAll();
+            }
+
+            @Override
+            public boolean spawn(EnemyType t, boolean buffed) {
+                return events.trigger(t, buffed);
+            }
+
+            @Override
+            public void askDifficulty() {
+                refreshAll();
+                MainActivity.this.askDifficulty();
+            }
+        });
+        adminButton = findViewById(R.id.adminButton);
+        adminButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openAdmin();
+            }
+        });
         if (practice != null) {
             events.setDoorsEnabled(false);
             // wait for layout so the entity knows the screen size
@@ -189,6 +212,14 @@ public class MainActivity extends Activity implements EventManager.Listener {
             long dt = Math.min(100, now - lastFrame);
             lastFrame = now;
             events.tick(dt);
+            if (state.cheatAutoClick && !events.isActive()) {
+                // 15 taps a second
+                autoClickAcc += dt;
+                while (autoClickAcc >= 66) {
+                    autoClickAcc -= 66;
+                    circle.tapCenter();
+                }
+            }
             doorProgress.setProgress(events.isActive() ? 1000 : (int) (events.doorProgress() * 1000));
             handler.postDelayed(this, 16);
         }
@@ -345,10 +376,6 @@ public class MainActivity extends Activity implements EventManager.Listener {
         rebirthInfo = (TextView) header.findViewById(R.id.rebirthInfo);
         statsText = (TextView) header.findViewById(R.id.stats);
         rebirthButton = (Button) header.findViewById(R.id.rebirthButton);
-        adminPanel = header.findViewById(R.id.adminPanel);
-        adminButtons = header.findViewById(R.id.adminButtons);
-        adminSwitch = (Switch) header.findViewById(R.id.adminSwitch);
-
         rebirthButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -356,19 +383,6 @@ public class MainActivity extends Activity implements EventManager.Listener {
             }
         });
 
-        adminSwitch.setChecked(state.adminEnabled);
-        adminSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton b, boolean on) {
-                if (on && !state.adminEverUsed) {
-                    confirmAdmin();
-                    return;
-                }
-                state.adminEnabled = on && state.adminUnlocked;
-                state.save(MainActivity.this);
-                refreshRebirth();
-            }
-        });
         riftInfo = (TextView) header.findViewById(R.id.riftInfo);
         riftButton = (Button) header.findViewById(R.id.riftButton);
         riftButton.setOnClickListener(new View.OnClickListener() {
@@ -377,12 +391,6 @@ public class MainActivity extends Activity implements EventManager.Listener {
                 pickRift();
             }
         });
-        bindSpawn(header, R.id.spawnA90, EnemyType.A90);
-        bindSpawn(header, R.id.spawnA90B, EnemyType.A90B);
-        bindSpawn(header, R.id.spawnRush, EnemyType.RUSH);
-        bindSpawn(header, R.id.spawnFigure, EnemyType.FIGURE);
-        bindSpawn(header, R.id.spawnSecret, EnemyType.SECRET);
-
         lists[2].addHeaderView(header, null, false);
         lists[2].setAdapter(new RowAdapter(MetaUpgrade.ALL.length) {
             @Override
@@ -393,7 +401,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
                 long cost = m.costFor(tier);
                 r.title.setText(m.name);
                 r.subtitle.setText(m.effect);
-                r.cost.setText(maxed ? "MAXED" : cost + " superterrestrial item" + (cost == 1 ? "" : "s"));
+                r.cost.setText(maxed ? "MAXED" : cost + " Super" + (cost == 1 ? "" : "s"));
                 r.cost.setTextColor(getResources().getColor(R.color.holo_purple));
                 r.count.setText(String.format(Locale.US, "%d/%d", tier, m.maxTier));
                 return !maxed && state.stItems >= cost;
@@ -411,45 +419,27 @@ public class MainActivity extends Activity implements EventManager.Listener {
         });
     }
 
-    /** tap spawns the normal entity, long press the SUPER one */
-    private void bindSpawn(View root, int id, final EnemyType t) {
-        View b = root.findViewById(id);
-        b.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                adminSpawn(t, false);
-            }
-        });
-        b.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                adminSpawn(t, t != EnemyType.SECRET);
-                return true;
-            }
-        });
-    }
-
-    /** First time only: the admin panel turns progression off for this save forever. */
-    private void confirmAdmin() {
+    /** ADMIN button. First time only: warn that progression goes away for this save forever. */
+    private void openAdmin() {
+        if (events.isActive()) return;
+        if (state.adminEverUsed) {
+            admin.show();
+            return;
+        }
         new AlertDialog.Builder(this, AlertDialog.THEME_HOLO_DARK)
-                .setTitle("Enable the admin panel?")
+                .setTitle("Open the admin panel?")
                 .setMessage("progression disabled. you can't get achievements or use the rift inside this save."
-                        + "\n\nthis stays even if you turn the panel off again.")
-                .setCancelable(false)
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface d, int w) {
-                        adminSwitch.setChecked(false);
-                    }
-                })
-                .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
+                        + "\n\nthis stays for good once you open it.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Open", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface d, int w) {
                         state.adminEverUsed = true;
                         state.adminEnabled = true;
                         state.riftKind = GameState.RIFT_EMPTY;
                         state.save(MainActivity.this);
-                        refreshRebirth();
+                        refreshAll();
+                        admin.show();
                     }
                 })
                 .show();
@@ -489,10 +479,6 @@ public class MainActivity extends Activity implements EventManager.Listener {
                 .show();
     }
 
-    private void adminSpawn(EnemyType t, boolean buffed) {
-        if (!state.adminEnabled) return;
-        if (!events.trigger(t, buffed)) toast("something is already here");
-    }
 
     private void confirmRebirth() {
         final long reward = eco.rebirthReward();
@@ -503,11 +489,11 @@ public class MainActivity extends Activity implements EventManager.Listener {
         new AlertDialog.Builder(this, AlertDialog.THEME_HOLO_DARK)
                 .setTitle("Rebirth?")
                 .setMessage("Your holos, shop and upgrades reset.\n\nYou get " + reward
-                        + " superterrestrial item" + (reward == 1 ? "" : "s")
+                        + " Super" + (reward == 1 ? "" : "s")
                         + " (+10% income each, forever)."
                         + (state.riftLabel() != null && !state.progressionDisabled()
                         ? "\n\nThe rift carries " + state.riftLabel() + " into your next run." : "")
-                        + (state.adminUnlocked ? "" : "\n\nRebirthing also unlocks the admin panel."))
+                        + (state.adminUnlocked ? "" : "\n\nRebirthing also unlocks the ADMIN button."))
                 .setNegativeButton("Not yet", null)
                 .setPositiveButton("Rebirth", new DialogInterface.OnClickListener() {
                     @Override
@@ -520,7 +506,7 @@ public class MainActivity extends Activity implements EventManager.Listener {
                             state.save(MainActivity.this);
                             announce(Achievement.check(MainActivity.this, state,
                                     superHard ? Achievement.MASOCHIST : null));
-                            toast("reborn. +" + got + " superterrestrial items");
+                            toast("reborn. +" + got + " Supers");
                             refreshAll();
                             askDifficulty();
                         }
@@ -600,28 +586,26 @@ public class MainActivity extends Activity implements EventManager.Listener {
     // ---- ui refresh ----
 
     private void refreshTop() {
+        adminButton.setVisibility(state.adminUnlocked && practice == null ? View.VISIBLE : View.GONE);
         holosText.setText(Fmt.holos(state.holos));
         ratesText.setText(Fmt.holos(eco.hps()) + "/sec  ·  " + Fmt.holos(eco.clickPower()) + "/tap");
         doorText.setText(state.difficulty < 0
                 ? String.format(Locale.US, "DOOR %04d", state.door)
                 : String.format(Locale.US, "%s \u00b7 DOOR %04d", state.diff().label.toUpperCase(Locale.US), state.door));
         stText.setText(state.stLifetime > 0 || state.stItems > 0
-                ? state.stItems + " superterrestrial" : "");
+                ? state.stItems + " Supers" : "");
     }
 
     private void refreshRebirth() {
         long reward = eco.rebirthReward();
         rebirthInfo.setText(reward > 0
-                ? "Rebirth now for " + reward + " superterrestrial item" + (reward == 1 ? "" : "s") + "."
+                ? "Rebirth now for " + reward + " Super" + (reward == 1 ? "" : "s") + "."
                 : "Earn " + Fmt.holos(Economy.REBIRTH_MIN) + " holos in one run to rebirth ("
                 + Fmt.holos(state.runEarned) + " so far).");
         rebirthButton.setEnabled(reward > 0);
         statsText.setText(String.format(Locale.US,
                 "rebirths %d  ·  income x%.2f  ·  entities survived %d / failed %d",
                 state.rebirths, eco.globalMult(), state.entitiesSurvived, state.entitiesFailed));
-        adminPanel.setVisibility(state.adminUnlocked ? View.VISIBLE : View.GONE);
-        if (adminSwitch.isChecked() != state.adminEnabled) adminSwitch.setChecked(state.adminEnabled);
-        adminButtons.setVisibility(state.adminEnabled ? View.VISIBLE : View.GONE);
         if (state.progressionDisabled()) {
             riftInfo.setText("the rift is closed in this save.");
             riftButton.setEnabled(false);
